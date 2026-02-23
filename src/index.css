@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* globals.css or index.css */
+
+html,
+body,
+#root {
+  /* ← for Vite/CRA */
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
