@@ -3,8 +3,9 @@ import { Eye, Trash2, X } from "lucide-react";  // ✅ added X
 import { useState } from "react";
 import { createPortal } from "react-dom";  // ✅ added createPortal
 import { formatBytes } from "../utils/format";
+import { memo } from "react";
 
-function ImageCard({ image, index, onDelete }) {
+const ImageCard = memo(function ImageCard({ image, index, onDelete }) {
     const [hovered, setHovered] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [lightbox, setLightbox] = useState(false);
@@ -100,6 +101,6 @@ function ImageCard({ image, index, onDelete }) {
             )}
         </>
     );
-}
+});
 
 export default ImageCard;

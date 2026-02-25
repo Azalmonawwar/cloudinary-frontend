@@ -14,7 +14,7 @@ function Dashboard() {
     const [searchQuery, setSearchQuery] = useState("");
     const [gridView, setGridView] = useState("grid");
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const ITEMS_PER_PAGE = 12;
+    const ITEMS_PER_PAGE = 20;
 
     const { data: images = [], isLoading: loading } = useImages();
     const { mutate: deleteImageMutation } = useDeleteImage();
