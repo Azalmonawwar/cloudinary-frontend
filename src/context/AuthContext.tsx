@@ -19,6 +19,10 @@ interface AuthContextType {
     logout: () => Promise<void>;
 }
 
+export const getToken = () => sessionStorage.getItem("token");
+const setToken = (t: string) => sessionStorage.setItem("token", t);
+const clearToken = () => sessionStorage.removeItem("token");
+
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -29,21 +33,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // ── Check if already logged in on mount ──────────────────────────────────
     useEffect(() => {
         const checkAuth = async () => {
+            const token = getToken(); // ← reads from sessionStorage
+            if (!token) { setLoading(false); return; }
+
             try {
                 const res = await fetch(`${API}/auth/me`, {
-                    credentials: "include",
+                    headers: { Authorization: `Bearer ${token}` },
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    setUser({
-                        id: data.user.id,
-                        email: data.user.email,
-                        name: data.user.displayName || data.user.email,
-                        avatar: data.user.avatar,
-                    });
+                    setUser(mapUser(data.user));
+                } else {
+                    clearToken();
                 }
             } catch (err) {
-                // not logged in — that's fine
+                clearToken();
             } finally {
                 setLoading(false);
             }
@@ -74,6 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!res.ok) throw new Error(data.error || "Login failed.");
         console.log("[AuthContext] Login successful:", data);
         queryClient.clear(); // Clear all cached data on login
+        setToken(data.token);
         setUser(mapUser(data.user)); // ← handle both { user: {...} } and direct user object
     };
 
@@ -88,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Registration failed.");
-
+        setToken(data.token);
         queryClient.clear(); // Clear all cached data on login
         setUser(mapUser(data.user)); // ← handle both { user: {...} } and direct user object
     };

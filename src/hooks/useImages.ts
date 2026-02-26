@@ -1,10 +1,15 @@
 // hooks/useImages.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getToken } from "../context/AuthContext";
+const authHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${getToken()}`,
+});
 
 const API = import.meta.env.VITE_API_URL || "/api";
 
 const fetchImages = async () => {
-  const res = await fetch(`${API}/images`, { credentials: "include" });
+  const res = await fetch(`${API}/images`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Failed to fetch images");
   const data = await res.json();
   return data.images || [];
@@ -13,7 +18,7 @@ const fetchImages = async () => {
 const deleteImage = async (id: string) => {
   const res = await fetch(`${API}/images/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: authHeaders(),
   });
   if (!res.ok) throw new Error("Delete failed");
   return id;
@@ -73,8 +78,7 @@ export function useUploadImage(onProgress?: (progress: number) => void) {
       // ── Step 1: Get presigned URL ───────────────────────────────────────────
       const presignRes = await fetch(`${API}/images/presign`, {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({
           filename: file.name,
           mimeType: file.type,
@@ -93,7 +97,10 @@ export function useUploadImage(onProgress?: (progress: number) => void) {
       // ── Step 2: Upload directly to S3 ──────────────────────────────────────
       const uploadRes = await fetch(uploadUrl, {
         method: "PUT",
-        headers: { "Content-Type": file.type },
+        headers: {
+          "Content-Type": file.type,
+          Authorization: `Bearer ${getToken()}`,
+        },
         body: file,
       });
 
@@ -107,8 +114,8 @@ export function useUploadImage(onProgress?: (progress: number) => void) {
       // ── Step 4: Sync metadata ───────────────────────────────────────────────
       const syncRes = await fetch(`${API}/images/sync`, {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+
+        headers: authHeaders(),
         body: JSON.stringify({
           s3Key,
           cdnUrl,
@@ -153,8 +160,7 @@ export function useUpdateProfile() {
     mutationFn: async (data: { displayName: string }) => {
       const res = await fetch(`${API}/auth/me`, {
         method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(data),
       });
       const json = await res.json();
@@ -173,7 +179,7 @@ export function useUserStats() {
   return useQuery({
     queryKey: ["me"],
     queryFn: async () => {
-      const res = await fetch(`${API}/auth/me`, { credentials: "include" });
+      const res = await fetch(`${API}/auth/me`, { headers: authHeaders() });
       if (!res.ok) throw new Error("Failed to fetch stats.");
       const data = await res.json();
       return data.user;
@@ -188,7 +194,7 @@ export function useDeleteAccount() {
     mutationFn: async () => {
       const res = await fetch(`${API}/auth/me`, {
         method: "DELETE",
-        credentials: "include",
+        headers: authHeaders(),
       });
       if (!res.ok) throw new Error("Failed to delete account.");
       return res.json();
