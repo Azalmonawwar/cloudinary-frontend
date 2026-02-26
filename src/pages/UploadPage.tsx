@@ -14,7 +14,7 @@ function UploadPage({ onUpload }) {
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [done, setDone] = useState(false);
-    const inputRef = useRef();
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
 

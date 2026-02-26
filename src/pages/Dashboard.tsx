@@ -1,12 +1,11 @@
-import { AnimatePresence, m, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 import GalleryPage from "./GalleryPage";
 import UploadPage from "./UploadPage";
 import SettingsPage from "./SettingPage";
 import { Cloud, LogOut, Menu, Search, Grid3X3, LayoutGrid, Images, Upload, Settings } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useAddImage, useDeleteImage, useImages } from "../hooks/useImages";
-const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
 function Dashboard() {
     const { user, logout } = useAuth();
     const [page, setPage] = useState("gallery");
@@ -87,11 +86,11 @@ function Dashboard() {
                         <div className="px-4 pt-4 border-t border-white/[0.07]">
                             <div className="flex items-center gap-2.5 mb-3">
                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                                    {user.name[0].toUpperCase()}
+                                    {user?.name?.[0]?.toUpperCase() ?? "?"}
                                 </div>
                                 <div className="overflow-hidden">
-                                    <div className="text-xs font-semibold truncate">{user.name}</div>
-                                    <div className="text-xs text-slate-500 truncate">{user.email}</div>
+                                    <div className="text-xs font-semibold truncate">{user?.name?.[0]?.toUpperCase() ?? "?"}</div>
+                                    <div className="text-xs text-slate-500 truncate">{user?.email?.toLowerCase() ?? "?"}</div>
                                 </div>
                             </div>
                             <motion.button
@@ -139,7 +138,7 @@ function Dashboard() {
                     </div>
 
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center text-xs font-bold cursor-pointer">
-                        {user.name[0].toUpperCase()}
+                        {user?.name?.[0]?.toUpperCase() ?? "?"}
                     </div>
                 </header>
 

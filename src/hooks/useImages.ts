@@ -43,7 +43,7 @@ export function useDeleteImage() {
     // If delete fails — rollback UI
     onError: (err, id, context) => {
       queryClient.setQueryData(["images"], context?.previous);
-      console.error("Delete failed, rolling back:", err);
+      console.error("Delete failed, rolling back:", err, id);
     },
   });
 }

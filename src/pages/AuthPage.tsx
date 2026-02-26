@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Cloud, Zap, Shield, ArrowRight, Image as ImageIcon,
+    Cloud, Zap, Shield, ArrowRight
 } from "lucide-react";
 import InputField from "../components/InputField";
 import { useAuth } from "../context/AuthContext";
@@ -36,6 +36,7 @@ function AuthPage() {
             }
             // ✅ No need to redirect — App.tsx automatically shows Dashboard when user is set
         } catch (err: any) {
+            console.error("Auth error:", err, serverError);
             setServerError(err.message);
         } finally {
             setLoading(false);

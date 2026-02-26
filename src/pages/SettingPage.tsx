@@ -1,6 +1,7 @@
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import InputField from "../components/InputField";
+import { useState } from "react";
 function SettingsPage({ user, totalImages }) {
     const stats = [
         { label: "Total Images", value: totalImages, color: "text-indigo-400" },
@@ -8,7 +9,8 @@ function SettingsPage({ user, totalImages }) {
         { label: "Bandwidth", value: "18.2 GB", color: "text-amber-400" },
         { label: "API Calls", value: "14,291", color: "text-emerald-400" },
     ];
-
+    const [displayName, setDisplayName] = useState(user?.name || "");
+    const [email, setEmail] = useState(user?.email || "");
     return (
         <div className="max-w-xl">
             <h1 className="text-2xl font-extrabold tracking-tight mb-7">Settings</h1>
@@ -27,8 +29,8 @@ function SettingsPage({ user, totalImages }) {
             <div className="p-5 rounded-xl bg-[#1E1E2E] border border-white/[0.07] mb-3">
                 <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-5">Profile</h2>
                 <div className="flex flex-col gap-4">
-                    <InputField label="Display name" value={user.name} onChange={() => { }} />
-                    <InputField label="Email" type="email" value={user.email} onChange={() => { }} />
+                    <InputField label="Display name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={"Your name"} error={""} />
+                    <InputField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={"you@email.com"} error={""} />
                     <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
                         className="self-start px-5 py-2 rounded-lg bg-indigo-500 border-none text-white text-sm font-semibold cursor-pointer">
                         Save changes
