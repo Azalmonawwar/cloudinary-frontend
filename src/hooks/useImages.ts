@@ -99,7 +99,6 @@ export function useUploadImage(onProgress?: (progress: number) => void) {
         method: "PUT",
         headers: {
           "Content-Type": file.type,
-          Authorization: `Bearer ${getToken()}`,
         },
         body: file,
       });
