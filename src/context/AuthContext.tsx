@@ -1,4 +1,5 @@
 // context/AuthContext.tsx
+import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useState, useEffect } from "react";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -21,6 +22,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+    const queryClient = useQueryClient();
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true); // true on mount — checking existing session
 
@@ -49,6 +51,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         checkAuth();
     }, []);
 
+    const mapUser = (data: any) => ({
+        id: data.id,
+        email: data.email,
+        // ← handle every possible field name your backend might send
+        name: data.displayName || data.name || data.username || data.email,
+        avatar: data.avatar || null,
+    });
     // ── Login ─────────────────────────────────────────────────────────────────
     const login = async (email: string, password: string) => {
         const res = await fetch(`${API}/auth/login`, {
@@ -59,14 +68,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         const data = await res.json();
+        console.log("FULL RESPONSE:", data);        // ← check this
+        console.log("USER OBJECT:", data.user);     // ← check this
+        console.log("DISPLAY NAME:", data.user?.displayName);
         if (!res.ok) throw new Error(data.error || "Login failed.");
-
-        setUser({
-            id: data.user.id,
-            email: data.user.email,
-            name: data.user.displayName || data.user.email,
-            avatar: data.user.avatar,
-        });
+        console.log("[AuthContext] Login successful:", data);
+        queryClient.clear(); // Clear all cached data on login
+        setUser(mapUser(data.user)); // ← handle both { user: {...} } and direct user object
     };
 
     // ── Register ──────────────────────────────────────────────────────────────
@@ -81,12 +89,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Registration failed.");
 
-        setUser({
-            id: data.user.id,
-            email: data.user.email,
-            name: data.user.displayName || data.user.email,
-            avatar: data.user.avatar,
-        });
+        queryClient.clear(); // Clear all cached data on login
+        setUser(mapUser(data.user)); // ← handle both { user: {...} } and direct user object
     };
 
     // ── Logout ────────────────────────────────────────────────────────────────
@@ -96,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             credentials: "include",
         });
         setUser(null);
+        queryClient.clear(); // Clear all cached data
     };
 
     return (

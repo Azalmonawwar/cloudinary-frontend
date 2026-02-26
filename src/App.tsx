@@ -1,14 +1,14 @@
-// App.tsx
-import { AnimatePresence, motion } from "framer-motion";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import { motion } from "framer-motion";
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
+import GalleryPage from "./pages/GalleryPage";
+import UploadPage from "./pages/UploadPage";
+import SettingsPage from "./pages/SettingPage";
 
-
-export default function App() {
+function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-
-  // Show nothing while checking existing JWT cookie
   if (loading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[#0A0A0F]">
@@ -20,7 +20,18 @@ export default function App() {
       </div>
     );
   }
+  if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
 
+function GuestRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+}
+
+export default function App() {
   return (
     <>
       <style>{`
@@ -30,17 +41,16 @@ export default function App() {
         ::-webkit-scrollbar-track { background: #1E1E2E; }
         ::-webkit-scrollbar-thumb { background: #3A3A52; border-radius: 3px; }
       `}</style>
-      <AnimatePresence mode="wait">
-        {!user ? (
-          <motion.div key="auth" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <AuthPage />
-          </motion.div>
-        ) : (
-          <motion.div key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <Dashboard />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<GuestRoute><AuthPage /></GuestRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
+          <Route index element={<GalleryPage />} />
+          <Route path="upload" element={<UploadPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
     </>
   );
 }

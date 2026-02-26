@@ -1,50 +1,35 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import GalleryPage from "./GalleryPage";
-import UploadPage from "./UploadPage";
-import SettingsPage from "./SettingPage";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Cloud, LogOut, Menu, Search, Grid3X3, LayoutGrid, Images, Upload, Settings } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { useAddImage, useDeleteImage, useImages } from "../hooks/useImages";
+import { useImages } from "../hooks/useImages";
+
 function Dashboard() {
     const { user, logout } = useAuth();
-    const [page, setPage] = useState("gallery");
-    const [currentPage, setCurrentPage] = useState(1);
+    const navigate = useNavigate();
+    const location = useLocation();
     const [searchQuery, setSearchQuery] = useState("");
     const [gridView, setGridView] = useState("grid");
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const ITEMS_PER_PAGE = 20;
 
-    const { data: images = [], isLoading: loading } = useImages();
-    const { mutate: deleteImageMutation } = useDeleteImage();
-    const { addImage } = useAddImage();
+    const { data: images = [] } = useImages();
 
-
-    const handleDelete = (id: string) => {
-        deleteImageMutation(id); // optimistic — instant UI update
+    const handleLogout = async () => {
+        await logout();
+        navigate("/login");
     };
-
-    const handleUpload = (newImage: any) => {
-        addImage(newImage);      // adds to cache — no refetch
-        setPage("gallery");
-    };
-    const filtered = images.filter((img) =>
-        img.originalFilename.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-    const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-
 
     const navItems = [
-        { id: "gallery", icon: Images, label: "Library", count: images.length },
-        { id: "upload", icon: Upload, label: "Upload" },
-        { id: "settings", icon: Settings, label: "Settings" },
+        { path: "/dashboard", icon: Images, label: "Library", count: images.length },
+        { path: "/dashboard/upload", icon: Upload, label: "Upload" },
+        { path: "/dashboard/settings", icon: Settings, label: "Settings" },
     ];
 
     return (
-        <div className="flex h-screen w-screen bg-[#0A0A0F] text-white ">
+        <div className="flex h-screen w-screen bg-[#0A0A0F] text-white">
 
-            {/* ── Sidebar ── */}
+            {/* Sidebar */}
             <AnimatePresence>
                 {sidebarOpen && (
                     <motion.aside
@@ -64,22 +49,25 @@ function Dashboard() {
 
                         {/* Nav */}
                         <nav className="flex-1 px-3">
-                            {navItems.map(({ id, icon: Icon, label, count }) => (
-                                <motion.button key={id}
-                                    whileHover={{ x: 3 }}
-                                    whileTap={{ scale: 0.97 }}
-                                    onClick={() => setPage(id)}
-                                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg mb-1 text-left text-sm font-medium transition-all cursor-pointer border
-                    ${page === id
-                                            ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-400"
-                                            : "bg-transparent border-transparent text-slate-400 hover:text-slate-300"}`}>
-                                    <Icon size={15} />
-                                    <span className="flex-1">{label}</span>
-                                    {count !== undefined && (
-                                        <span className="bg-[#252535] text-slate-500 text-xs px-1.5 py-0.5 rounded">{count}</span>
-                                    )}
-                                </motion.button>
-                            ))}
+                            {navItems.map(({ path, icon: Icon, label, count }) => {
+                                const isActive = location.pathname === path;
+                                return (
+                                    <motion.button key={path}
+                                        whileHover={{ x: 3 }}
+                                        whileTap={{ scale: 0.97 }}
+                                        onClick={() => navigate(path)}
+                                        className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg mb-1 text-left text-sm font-medium transition-all cursor-pointer border
+                                            ${isActive
+                                                ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-400"
+                                                : "bg-transparent border-transparent text-slate-400 hover:text-slate-300"}`}>
+                                        <Icon size={15} />
+                                        <span className="flex-1">{label}</span>
+                                        {count !== undefined && (
+                                            <span className="bg-[#252535] text-slate-500 text-xs px-1.5 py-0.5 rounded">{count}</span>
+                                        )}
+                                    </motion.button>
+                                );
+                            })}
                         </nav>
 
                         {/* User */}
@@ -89,13 +77,13 @@ function Dashboard() {
                                     {user?.name?.[0]?.toUpperCase() ?? "?"}
                                 </div>
                                 <div className="overflow-hidden">
-                                    <div className="text-xs font-semibold truncate">{user?.name?.[0]?.toUpperCase() ?? "?"}</div>
-                                    <div className="text-xs text-slate-500 truncate">{user?.email?.toLowerCase() ?? "?"}</div>
+                                    <div className="text-xs font-semibold truncate">{user?.name ?? user?.email}</div>
+                                    <div className="text-xs text-slate-500 truncate">{user?.email}</div>
                                 </div>
                             </div>
                             <motion.button
                                 whileHover={{ backgroundColor: "rgba(251,113,133,0.08)" }}
-                                onClick={logout}
+                                onClick={handleLogout}
                                 className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg bg-transparent border-none text-slate-500 text-xs cursor-pointer transition-colors hover:text-rose-400">
                                 <LogOut size={13} /> Sign out
                             </motion.button>
@@ -104,7 +92,7 @@ function Dashboard() {
                 )}
             </AnimatePresence>
 
-            {/* ── Main ── */}
+            {/* Main */}
             <main className="flex-1 flex flex-col h-full overflow-hidden">
                 {/* Header */}
                 <header className="flex-shrink-0 px-6 py-3.5 border-b border-white/[0.07] bg-[#1E1E2E] flex items-center gap-3">
@@ -113,23 +101,21 @@ function Dashboard() {
                         <Menu size={17} />
                     </button>
 
-                    {/* Search */}
                     <div className="relative flex-1 max-w-sm">
                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                         <input
                             value={searchQuery}
-                            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search images…"
                             className="w-full pl-9 pr-3.5 py-2 rounded-lg bg-[#252535] border border-white/[0.08] text-white text-sm outline-none placeholder:text-slate-600 focus:border-indigo-500/50 transition-colors"
                         />
                     </div>
 
-                    {/* Grid toggle */}
-                    <div className="flex gap-1 ml-auto flex-1 overflow-auto p-6">
+                    <div className="flex gap-1 ml-auto">
                         {[{ v: "grid", Icon: Grid3X3 }, { v: "masonry", Icon: LayoutGrid }].map(({ v, Icon }) => (
                             <button key={v} onClick={() => setGridView(v)}
                                 className={`p-2 rounded-lg border cursor-pointer transition-all
-                  ${gridView === v
+                                    ${gridView === v
                                         ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-400"
                                         : "bg-transparent border-transparent text-slate-500 hover:text-slate-300"}`}>
                                 <Icon size={15} />
@@ -142,27 +128,9 @@ function Dashboard() {
                     </div>
                 </header>
 
-                {/* Content */}
+                {/* ✅ Outlet replaces conditional page rendering */}
                 <div className="flex-1 overflow-auto p-6">
-                    <AnimatePresence mode="wait">
-                        {page === "gallery" && (
-                            <motion.div key="gallery" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                <GalleryPage images={paginated} loading={loading} onDelete={handleDelete}
-                                    gridView={gridView} currentPage={currentPage} totalPages={totalPages}
-                                    onPageChange={setCurrentPage} totalImages={filtered.length} />
-                            </motion.div>
-                        )}
-                        {page === "upload" && (
-                            <motion.div key="upload" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                <UploadPage onUpload={handleUpload} />
-                            </motion.div>
-                        )}
-                        {page === "settings" && (
-                            <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                <SettingsPage user={user} totalImages={images.length} />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                    <Outlet context={{ searchQuery, gridView }} />
                 </div>
             </main>
         </div>
