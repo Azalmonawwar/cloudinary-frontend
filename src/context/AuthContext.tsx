@@ -19,9 +19,9 @@ interface AuthContextType {
     logout: () => Promise<void>;
 }
 
-export const getToken = () => sessionStorage.getItem("token");
-const setToken = (t: string) => sessionStorage.setItem("token", t);
-const clearToken = () => sessionStorage.removeItem("token");
+export const getToken = () => localStorage.getItem("token");
+const setToken = (t: string) => localStorage.setItem("token", t);
+const clearToken = () => localStorage.removeItem("token");
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
